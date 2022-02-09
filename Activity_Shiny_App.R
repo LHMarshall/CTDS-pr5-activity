@@ -257,7 +257,14 @@ server <- function(input, output, session){
   # Display activity analysis input 
   output$resultsParam <- renderPrint({
     if (input$run == 0){
-      return()  
+      cat("") 
+    }else{
+      cat("The following results and plot are based on:", fill = TRUE)
+      cat("Date time variable: ", column.name(), fill = TRUE)
+      cat("   ", paste(column()[1:5], collapse = ", "), " ...", fill = TRUE)
+      cat("Date time format:", column.format(), fill = TRUE)
+      cat("Bandwith: ", bandwidth(), fill = TRUE)
+      cat("Reps: ", reps(), "\n", fill = TRUE)  
     } 
   })
   
