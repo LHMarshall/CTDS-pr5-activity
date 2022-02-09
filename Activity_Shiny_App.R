@@ -259,12 +259,6 @@ server <- function(input, output, session){
     if (input$run == 0){
       return()  
     } 
-    cat("The following results and plot are based on:", fill = TRUE)
-    cat("Date time variable: ", column.name(), fill = TRUE)
-    cat("   ", paste(column()[1:5], collapse = ", "), " ...", fill = TRUE)
-    cat("Date time format:", column.format(), fill = TRUE)
-    cat("Bandwith: ", bandwidth(), fill = TRUE)
-    cat("Reps: ", reps(), "\n", fill = TRUE)
   })
   
   # Display activity results
@@ -273,33 +267,18 @@ server <- function(input, output, session){
     validate(need(as.character(as.numeric(input$adj)) == input$adj, "Please input a numeric bandwith."))
     validate(need(as.character(as.numeric(input$reps)) == input$reps, "Please input a numeric value for reps."))
     validate(need(input$run, "Not yet run."))
-    if (input$run == 0){
-      return()  
-    } 
     req(rtime())
     point.result <- act_result()@act
     boot.results <- boot.mults() 
     point.result[2] <- act_se()
     point.result[3] <- quantile(boot.results, prob = 0.025)
     point.result[4] <- quantile(boot.results, prob = 0.975)
-    #cat("The following results and plot are based on:", fill = TRUE)
-    #cat("Date time variable: ", column.name(), fill = TRUE)
-    #cat("   ", paste(column()[1:5], collapse = ", "), " ...", fill = TRUE)
-    #cat("Date time format:", column.format(), fill = TRUE)
-    #cat("Bandwith: ", bandwidth(), fill = TRUE)
-    #cat("Reps: ", reps(), "\n", fill = TRUE)
     print(as.data.frame(t(point.result)))
   })
   
   # Plot activity results
   output$hist <- renderPlot({
-    validate(need(is.character(actdata[[input$time.of.day]]), ""))
-    validate(need(as.character(as.numeric(input$adj)) == input$adj, ""))
-    validate(need(as.character(as.numeric(input$reps)) == input$reps, ""))
-    validate(need(input$run, ""))
     req(rtime())
-    if (input$run == 0) 
-      return()
     plot(act_result(), cline = list(col = NULL))
   })
   
@@ -314,37 +293,19 @@ server <- function(input, output, session){
   # Display scaled activity multiplier
   output$activity.rate <- renderPrint({
     req(rtime())
-    if (input$run == 0) 
-      return()
-    act.rate <- try(act_result()@act[1]/prop.camera(), silent = TRUE)
-    if(class(act.rate) == "try-error"){
-      cat("Please run analysis.")
-    }else{
-      cat(act.rate)
-    }
+    act.rate <- act_result()@act[1]/prop.camera()
+    cat(act.rate)
   })
   
   # Display scaled activity multiplier standard error
   output$activity.rate.se <- renderPrint({
     req(rtime())
-    if (input$run == 0) 
-      return()
-    act.rate.se <- try(act_se()/prop.camera(), silent = TRUE)
-    if(class(act.rate.se) == "try-error"){
-      cat("Please run analysis.")
-    }else{
-      cat(act.rate.se)
-    }
+    act.rate.se <- act_se()/prop.camera()
+    cat(act.rate.se)
   })
   
   # Display summary of multiplier boostrap replicates
   output$boot.mult <- renderPrint({
-    validate(need(is.character(actdata[[input$time.of.day]]), "The time-date column must be of type character."))
-    validate(need(as.character(as.numeric(input$adj)) == input$adj, "Please input a numeric bandwith."))
-    validate(need(as.character(as.numeric(input$reps)) == input$reps, "Please input a numeric value for reps."))
-    validate(need(input$run, "Not yet run."))
-    if (input$run == 0) 
-      return()
     req(rtime())
     boot.vals <- boot.mults()/prop.camera()
     cat("The following results and plot are based on:", fill = TRUE)
