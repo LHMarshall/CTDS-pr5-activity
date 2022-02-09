@@ -28,8 +28,7 @@ gen.boot.vals <- function(rtime, reps, bandwidth){
   return(boot.vals)
 }
 
-#, ['\\(','\\)']]
-
+# PAGE SETUP ~~~~~~~~~~~~~~~~~~~~~~~~
 ui <- fluidPage(
   #Application Title
   titlePanel("Temporal Availability Calculations for Analysis of Camera Trap Data"),
@@ -139,15 +138,14 @@ ui <- fluidPage(
                        
                        h4("Scaled bootstrap replicates summary"),
                        p("These are the scaled values ready for import into Distance for Windows. These values can be downloaded, using the button below, to a tab delimited .txt file and imported into the appropriate column of your multiplier bootstrap values layer (default name - 'Multipliers Bootstrap') in your Distance project."),
-                       linebreaks(2),
                        verbatimTextOutput("boot.mult"),
-                       linebreaks(1),
-                       downloadButton("boot_mults", "Download Bootstrap Replicates")
+                       downloadButton("boot_mults", "Download Bootstrap Replicates"),
+                       linebreaks(2)
               )
   )
 )
 
-
+# SERVER FUNCTION ~~~~~~~~~~~~~~~~~~~~~~~~
 server <- function(input, output, session){
   
   # Read in the users dataset
@@ -178,6 +176,8 @@ server <- function(input, output, session){
            "head" = head(actdata()))
   })
 
+  # Perform a check on the bandwidth value. If the user types a . then automatically
+  # put a 0 before it. This makes the numeric verification easier!
   observe({
     tmp <- input$adj
     if(substr(tmp, 1, 1) == "."){
@@ -219,7 +219,8 @@ server <- function(input, output, session){
   reps <- eventReactive(input$run, {
     input$reps
   })
-  # Run the analysis
+  
+  # Run the analysis and save results
   rtime <- eventReactive(input$run, {
     check <- class(column()) == "character"
     req(check)
@@ -253,7 +254,7 @@ server <- function(input, output, session){
     sd(boot.mults())
   })
   
-  # Get activity results
+  # Display activity analysis input 
   output$resultsParam <- renderPrint({
     if (input$run == 0){
       return()  
@@ -266,7 +267,7 @@ server <- function(input, output, session){
     cat("Reps: ", reps(), "\n", fill = TRUE)
   })
   
-  # Get activity results
+  # Display activity results
   output$results <- renderPrint({
     validate(need(is.character(actdata()[[input$time.of.day]]), "The time-date column must be of type character."))
     validate(need(as.character(as.numeric(input$adj)) == input$adj, "Please input a numeric bandwith."))
@@ -302,12 +303,15 @@ server <- function(input, output, session){
     plot(act_result(), cline = list(col = NULL))
   })
   
+  # Calculate scaling value - proportion of day
   prop.camera <- reactive(as.numeric(input$op.hours)/24)
 
+  # Output scaling value
   output$prop.op.hours <- renderPrint({
     cat(prop.camera())
   })
   
+  # Display scaled activity multiplier
   output$activity.rate <- renderPrint({
     req(rtime())
     if (input$run == 0) 
@@ -320,6 +324,7 @@ server <- function(input, output, session){
     }
   })
   
+  # Display scaled activity multiplier standard error
   output$activity.rate.se <- renderPrint({
     req(rtime())
     if (input$run == 0) 
@@ -332,7 +337,7 @@ server <- function(input, output, session){
     }
   })
   
-  # Get activity results
+  # Display summary of multiplier boostrap replicates
   output$boot.mult <- renderPrint({
     validate(need(is.character(actdata[[input$time.of.day]]), "The time-date column must be of type character."))
     validate(need(as.character(as.numeric(input$adj)) == input$adj, "Please input a numeric bandwith."))
@@ -357,7 +362,7 @@ server <- function(input, output, session){
     data.frame(boot.reps = boot.mults()/prop.camera())
   })
   
-  # Downloadable csv of selected dataset ----
+  # Downloadable .txt file of selected dataset
   output$boot_mults <- downloadHandler(
     filename = function() {
       paste(input$dataset, ".txt", sep = "")
