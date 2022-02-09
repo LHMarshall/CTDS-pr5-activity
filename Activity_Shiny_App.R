@@ -364,11 +364,11 @@ server <- function(input, output, session){
   
   # Downloadable .txt file of selected dataset
   output$boot_mults <- downloadHandler(
-    filename = function() {
-      paste(input$dataset, ".txt", sep = "")
-    },
+    filename = "BootMultValues.txt",
     content = function(file) {
-      write.table(download.data(), file, row.names = FALSE, sep = "\t", eol = "\r\n")
+      eol <- ifelse(.Platform$OS.type == "windows", "\n", "\r\n")
+      write.table(download.data(), file, row.names = FALSE, sep = "\t", 
+                  eol = eol)
     }
   )
 }
