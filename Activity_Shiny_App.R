@@ -150,54 +150,33 @@ ui <- fluidPage(
 
 server <- function(input, output, session){
   
-  # DATA
-  output$data <- renderPrint({
+  # Read in the users dataset
+  actdata <- eventReactive(input$file, {
     file <- input$file
     ext <- tools::file_ext(file$datapath)
     req(file)
     validate(need(ext %in% c("csv", "txt"), "Please upload a csv or txt file"))
     if(ext == "csv"){
-      data <- read.csv(file$datapath, header = TRUE)
+      actdata <- read.csv(file$datapath, header = TRUE)
     }
     if(ext == "txt"){
-      data <- read.table(file$datapath, header = TRUE)
-    }
-    switch(input$display,
-           "summary" = summary(data),
-           "head" = head(data))
-  })
-  
-  # DATA.FULL
-  output$data.full <- renderDataTable({
-    file <- input$file
-    ext <- tools::file_ext(file$datapath)
-    req(file)
-    validate(need(ext %in% c("csv", "txt"), "Please upload a csv or txt file"))
-    if(ext == "csv"){
-      read.csv(file$datapath, header = TRUE)
-    }
-    if(ext == "txt"){
-      read.table(file$datapath, header = TRUE)
-    }
-  })
-  
-  # Update calculation options
-  observeEvent(input$file, {
-    file <- input$file
-    ext <- tools::file_ext(file$datapath)
-    req(file)
-    validate(need(ext %in% c("csv", "txt"), "Please upload a csv or txt file"))
-    if(ext == "csv"){
-      actdata <<- read.csv(file$datapath, header = TRUE)
-    }
-    if(ext == "txt"){
-      actdata <<- read.table(file$datapath, header = TRUE)
+      actdata <- read.table(file$datapath, header = TRUE)
     }
     dnames <- names(actdata)
     names(dnames) <- dnames
     updateSelectInput(inputId = "time.of.day", 
                       choices = dnames)
+    return(actdata)
   }) 
+  
+  # Display data summaries
+  output$data <- renderPrint({
+    req(file)
+    req(actdata())
+    switch(input$display,
+           "summary" = summary(actdata()),
+           "head" = head(actdata()))
+  })
 
   observe({
     tmp <- input$adj
@@ -212,7 +191,7 @@ server <- function(input, output, session){
     input$time.of.day
   })
   column <- eventReactive(input$run, {
-    actdata[[input$time.of.day]]
+    actdata()[[input$time.of.day]]
   })
   column.format <- eventReactive(input$run, {
     switch(input$time.format,
@@ -289,7 +268,7 @@ server <- function(input, output, session){
   
   # Get activity results
   output$results <- renderPrint({
-    validate(need(is.character(actdata[[input$time.of.day]]), "The time-date column must be of type character."))
+    validate(need(is.character(actdata()[[input$time.of.day]]), "The time-date column must be of type character."))
     validate(need(as.character(as.numeric(input$adj)) == input$adj, "Please input a numeric bandwith."))
     validate(need(as.character(as.numeric(input$reps)) == input$reps, "Please input a numeric value for reps."))
     validate(need(input$run, "Not yet run."))
