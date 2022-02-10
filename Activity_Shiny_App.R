@@ -90,7 +90,6 @@ ui <- fluidPage(
                        selectInput("time.format", "Date time format",
                                    c("HH:MM" = "%H:%M",
                                      "HH:MM:SS" = "%H:%M:%S",
-                                     "HH.MM" = "%H.%M",
                                      "HH.MM.SS" = "%H.%M.%S",
                                      "dd/mm/yyyy HH:MM" = "%d/%m/%Y %H:%M",
                                      "dd/mm/yyyy HH:MM:SS" = "%d/%m/%Y %H:%M:%S",
