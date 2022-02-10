@@ -247,6 +247,7 @@ server <- function(input, output, session){
     req(rtime())
     gen.boot.vals(rtime = rtime(), reps = as.numeric(reps()), bandwidth = as.numeric(bandwidth()))
   })
+  # Calculate the se as the sd of the replicates
   act_se <- eventReactive(input$run, {
     check <- class(column()) == "character"
     req(check)
